@@ -1,0 +1,21 @@
+{
+  "name": "vdom-timeline",
+  "version": "0.1.0",
+  "description": "VDOM Timeline",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "howler": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/howler": "^2.0.3"
+  }
+}
