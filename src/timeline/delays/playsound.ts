@@ -1,15 +1,16 @@
-import {createToken} from '../token'
-import {Emitter, DelayFactory} from '../factory'
+import Emitter from '../emitter'
+import PromiseToken from '../promise-token'
+import {DelayFactory} from '../timeline-factory'
 
 /**
  * Creates a cancelable, pausable/resumable delay.
  * Accepts a sound (Howl object.)
  */
-const PlaySound: DelayFactory<Howl> = function PlaySound (
+const PlaySound: DelayFactory<Howl> = function(
 	canceled: Promise<void>, paused: Emitter, resumed: Emitter,
 	sound: Howl
 ) {
-	const [promise, resolve] = createToken<void>()
+	const [promise, resolve] = PromiseToken<void>()
 	let soundId: number | undefined
 
 	canceled.then(() => {

@@ -1,15 +1,16 @@
-import {createToken} from '../token'
-import {Emitter, DelayFactory} from '../factory'
+import Emitter from '../emitter'
+import PromiseToken from '../promise-token'
+import {DelayFactory} from '../timeline-factory'
 
 /**
  * Creates a cancelable, pausable/resumable delay.
  * Accepts a duration in milliseconds.
  */
-const Delay: DelayFactory<number> = function Delay(
+const Delay: DelayFactory<number> = function(
 	canceled: Promise<void>, paused: Emitter, resumed: Emitter,
 	duration: number
 ) {
-	const [promise, resolve] = createToken<void>()
+	const [promise, resolve] = PromiseToken<void>()
 	let timer: number | undefined
 	let tRemain: number | undefined
 	let tStart = 0

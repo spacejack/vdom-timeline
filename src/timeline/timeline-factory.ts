@@ -1,28 +1,5 @@
-import {createToken} from './token'
-
-export type EmitterCallback = () => void
-
-// This Emitter object is needed because pausing and
-// resuming can happen multiple times (rather than just
-// once, like cancel, which can be a Promise.)
-export interface Emitter {
-	onemit(cb: EmitterCallback): void
-	emit(): void
-}
-
-export function Emitter(): Emitter {
-	const callbacks: EmitterCallback[] = []
-	return {
-		onemit(cb: EmitterCallback) {
-			callbacks.push(cb)
-		},
-		emit() {
-			for (let i = 0; i < callbacks.length; ++i) {
-				callbacks[i]()
-			}
-		}
-	}
-}
+import PromiseToken from './promise-token'
+import Emitter from './emitter'
 
 /**
  * A pauseable, resumable, cancelable Promise
@@ -34,20 +11,29 @@ export type TimelinePromise<T> = Promise<T> & {
 	canceled: Promise<void>
 }
 
+/** Signature for DelayFactory */
 export type DelayFactory<T> = (
 	canceled: Promise<void>, paused: Emitter, resumed: Emitter,
 	obj: T
 ) => Promise<void>
 
+/** Signature for TimelineCallback */
 export type TimelineCallback<T> = (
 	...delays: ((obj: any) => Promise<void>)[]
 ) => Promise<T>
 
 /**
+ * The Timeline function returns a cancellable, pauseable and resumable Promise.
+ * The body of the callback contains async logic for the timeline that can be
+ * cancelled, paused and resumed.
+ */
+export type Timeline<T> = (timelineCallback: TimelineCallback<T>) => TimelinePromise<T>
+
+/**
  * Variadic types for TimelineFactory.
  * (Written out in longhand. Add more if needed...)
  */
-export interface TF {
+interface TimelineFactory {
 	<R,O1>(df1: DelayFactory<O1>): (f: (d1: (o1: O1) => void) => Promise<void>) => TimelinePromise<R>
 	<R,O1,O2>(df1: DelayFactory<O1>, df2: DelayFactory<O2>): (f: (d1: (o1: O1) => void, d2: (o2: O2) => void) => Promise<R>) => TimelinePromise<R>
 	<R,O1,O2,O3>(df1: DelayFactory<O1>, df2: DelayFactory<O2>, df3: DelayFactory<O3>): (f: (d1: (o1: O1) => void, d2: (o2: O2) => void, d3: (o3: O3) => void) => Promise<R>) => TimelinePromise<R>
@@ -57,9 +43,9 @@ export interface TF {
  * Generic Timeline Factory.
  * Supply one or more custom DelayFactories to create a usable Timeline.
  */
-export const TimelineFactory: TF = function<R,O>(...delayFactories: DelayFactory<any>[]) {
+const TimelineFactory: TimelineFactory = function<R,O>(...delayFactories: DelayFactory<any>[]): Timeline<R> {
 	return function Timeline(f: TimelineCallback<R>): TimelinePromise<R> {
-		const [canceled, cancel] = createToken<void>()
+		const [canceled, cancel] = PromiseToken<void>()
 		const pauseEmitter = Emitter()
 		const resumeEmitter = Emitter()
 		const delays = delayFactories.map(
@@ -73,3 +59,5 @@ export const TimelineFactory: TF = function<R,O>(...delayFactories: DelayFactory
 		return tp
 	}
 }
+
+export default TimelineFactory

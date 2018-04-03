@@ -1,15 +1,16 @@
-import {createToken} from '../token'
-import {Emitter, TimelinePromise, DelayFactory} from '../factory'
+import Emitter from '../emitter'
+import PromiseToken from '../promise-token'
+import {TimelinePromise, DelayFactory} from '../timeline-factory'
 
 /**
  * Creates a cancelable, pausable/resumable delay.
  * Accepts a Timeline.
  */
-const PlayTimeline: DelayFactory<TimelinePromise<any>> = function PlayTimeline (
+const PlayTimeline: DelayFactory<TimelinePromise<any>> = function(
 	canceled: Promise<void>, paused: Emitter, resumed: Emitter,
 	timeline: TimelinePromise<any>
 ) {
-	const [promise, resolve] = createToken<void>()
+	const [promise, resolve] = PromiseToken<void>()
 
 	canceled.then(() => {
 		timeline.cancel()
