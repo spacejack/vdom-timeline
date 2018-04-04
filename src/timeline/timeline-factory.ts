@@ -44,7 +44,7 @@ interface TimelineFactory {
  * Supply one or more custom DelayFactories to create a usable Timeline.
  */
 const TimelineFactory: TimelineFactory = function<R,O>(...delayFactories: DelayFactory<any>[]): Timeline<R> {
-	return function Timeline(executor: TimelineExecutor<R>): TimelinePromise<R> {
+	return function Timeline(executor: TimelineExecutor<R>): TimelinePromise<R> { // tslint:disable-line no-shadowed-variable
 		const [canceled, cancel] = PromiseToken<void>()
 		const pauseEmitter = Emitter()
 		const resumeEmitter = Emitter()
