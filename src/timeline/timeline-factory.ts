@@ -17,17 +17,17 @@ export type DelayFactory<T> = (
 	obj: T
 ) => Promise<void>
 
-/** Signature for TimelineCallback */
-export type TimelineCallback<T> = (
+/** Signature for TimelineExecutor */
+export type TimelineExecutor<T> = (
 	...delays: ((obj: any) => Promise<void>)[]
 ) => Promise<T>
 
 /**
  * The Timeline function returns a cancellable, pauseable and resumable Promise.
- * The body of the callback contains async logic for the timeline that can be
+ * The body of the executor contains async logic for the timeline that can be
  * cancelled, paused and resumed.
  */
-export type Timeline<T> = (timelineCallback: TimelineCallback<T>) => TimelinePromise<T>
+export type Timeline<T> = (executor: TimelineExecutor<T>) => TimelinePromise<T>
 
 /**
  * Variadic types for TimelineFactory.
@@ -44,14 +44,14 @@ interface TimelineFactory {
  * Supply one or more custom DelayFactories to create a usable Timeline.
  */
 const TimelineFactory: TimelineFactory = function<R,O>(...delayFactories: DelayFactory<any>[]): Timeline<R> {
-	return function Timeline(f: TimelineCallback<R>): TimelinePromise<R> {
+	return function Timeline(executor: TimelineExecutor<R>): TimelinePromise<R> {
 		const [canceled, cancel] = PromiseToken<void>()
 		const pauseEmitter = Emitter()
 		const resumeEmitter = Emitter()
 		const delays = delayFactories.map(
 			df => (obj: any) => df(canceled, pauseEmitter, resumeEmitter, obj)
 		)
-		const tp: TimelinePromise<R> = f(...delays) as any
+		const tp: TimelinePromise<R> = executor(...delays) as any
 		tp.pause = pauseEmitter.emit
 		tp.resume = resumeEmitter.emit
 		tp.cancel = cancel
